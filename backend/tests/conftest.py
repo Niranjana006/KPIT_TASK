@@ -5,8 +5,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from typing import AsyncGenerator
 
-# Use an in-memory SQLite database for testing
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+# Use a file-backed SQLite database for testing to avoid connection pool issues
+TEST_DATABASE_URL = "sqlite+aiosqlite:///test_story_task_forge.db"
 
 engine = create_async_engine(
     TEST_DATABASE_URL,
