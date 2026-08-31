@@ -45,3 +45,28 @@ async def log_activity(
     )
     db.add(event)
     # The caller is responsible for committing the session
+
+async def create_notification(
+    db: AsyncSession,
+    user_id: str,
+    kind: str,
+    title: str,
+    body: str,
+    link: str | None = None,
+    idempotency_key: str | None = None,
+):
+    """
+    Create a notification for a user.
+    """
+    notification = models.Notification(
+        id=generate_id("n_"),
+        user_id=user_id,
+        kind=kind,
+        title=title,
+        body=body,
+        link=link,
+        idempotency_key=idempotency_key,
+        created_at=get_utc_now(),
+    )
+    db.add(notification)
+    return notification
