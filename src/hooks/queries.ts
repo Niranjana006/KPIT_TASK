@@ -62,10 +62,10 @@ export const activityQuery = (query: activityService.ActivityQuery = {}) =>
     queryFn: () => activityService.getActivity(query),
   });
 
-export const metricsQuery = (userId: string) =>
+export const dashboardMetricsQuery = () =>
   queryOptions({
-    queryKey: [...qk.metrics, userId],
-    queryFn: () => metricsService.getDashboardMetrics(userId),
+    queryKey: ["metrics", "dashboard"],
+    queryFn: () => metricsService.getDashboardMetrics(),
   });
 
 export const searchQuery = (q: string) =>

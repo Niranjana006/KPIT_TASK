@@ -1,9 +1,7 @@
 import { createContext, useContext } from "react";
 
-export type WorkItemSelection = 
-  | { kind: "task"; id: string } 
-  | { kind: "story"; id: string; projectId: string } 
-  | null;
+export type WorkItemSelection =
+  { kind: "task"; id: string } | { kind: "story"; id: string; projectId: string } | null;
 
 export interface WorkItemDrawerApi {
   selection: WorkItemSelection;

@@ -1,5 +1,10 @@
-import { clone, db, latency } from "./store";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { apiFetch } from "./api";
 import type { Project, Task, UserStory } from "@/types";
+import { mapProject } from "./projectService";
+import { mapStory } from "./storyService";
+import { mapTask } from "./taskService";
 
 export interface SearchResults {
   projects: Project[];
@@ -9,22 +14,12 @@ export interface SearchResults {
 
 /** GET /search?q= */
 export async function search(query: string): Promise<SearchResults> {
-  await latency(160);
-  const q = query.trim().toLowerCase();
-  if (!q) {
-    return {
-      projects: clone(db.projects.slice(0, 3)),
-      stories: clone(db.stories.slice(0, 3)),
-      tasks: clone(db.tasks.slice(0, 4)),
-    };
-  }
-  const match = (...fields: string[]) => fields.some((f) => f.toLowerCase().includes(q));
+  const q = query.trim();
+  const data = await apiFetch<any>(`/api/search?q=${encodeURIComponent(q)}`);
 
   return {
-    projects: clone(db.projects.filter((p) => match(p.name, p.key, p.description)).slice(0, 6)),
-    stories: clone(db.stories.filter((s) => match(s.title, s.ref, s.description)).slice(0, 8)),
-    tasks: clone(
-      db.tasks.filter((t) => match(t.title, t.ref, t.description, t.labels.join(" "))).slice(0, 10),
-    ),
+    projects: (data.projects || []).map(mapProject),
+    stories: (data.stories || []).map(mapStory),
+    tasks: (data.tasks || []).map(mapTask),
   };
 }

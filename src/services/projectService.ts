@@ -2,7 +2,7 @@
 import { apiFetch } from "./api";
 import type { ID, Project, ProjectInput } from "@/types";
 
-function mapProject(data: any): Project {
+export function mapProject(data: any): Project {
   return {
     id: String(data.id),
     key: String(data.key),
@@ -18,7 +18,7 @@ function mapProject(data: any): Project {
   };
 }
 
-function mapProjectInput(input: Partial<ProjectInput>): any {
+export function mapProjectInput(input: Partial<ProjectInput>): any {
   const data: any = { ...input };
   if (input.ownerId !== undefined) {
     data.owner_id = input.ownerId;

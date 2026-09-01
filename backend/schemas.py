@@ -470,3 +470,8 @@ class ErrorResponse(BaseModel):
     error: str
     message: str
     detail: Optional[Any] = None
+class SearchResults(BaseModel):
+    projects: List[ProjectRead]
+    stories: List[UserStoryRead]
+    tasks: List[TaskRead]
+

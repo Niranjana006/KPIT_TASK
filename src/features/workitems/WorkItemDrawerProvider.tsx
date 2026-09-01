@@ -8,7 +8,10 @@ export function WorkItemDrawerProvider({ children }: { children: ReactNode }) {
   const [selection, setSelection] = useState<WorkItemSelection>(null);
 
   const openTask = useCallback((id: string) => setSelection({ kind: "task", id }), []);
-  const openStory = useCallback((id: string, projectId: string) => setSelection({ kind: "story", id, projectId }), []);
+  const openStory = useCallback(
+    (id: string, projectId: string) => setSelection({ kind: "story", id, projectId }),
+    [],
+  );
   const close = useCallback(() => setSelection(null), []);
 
   const api = useMemo(

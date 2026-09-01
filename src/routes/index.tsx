@@ -23,7 +23,7 @@ import { Progress } from "@/components/ui/progress";
 import { ActivityTimeline } from "@/features/activity/ActivityTimeline";
 import { ProjectFormDialog } from "@/features/projects/ProjectFormDialog";
 import { useWorkItemDrawer } from "@/features/workitems/context";
-import { currentUserQuery, metricsQuery, usersQuery } from "@/hooks/queries";
+import { currentUserQuery, dashboardMetricsQuery, usersQuery } from "@/hooks/queries";
 import { dueLabel, isOverdue, statusLabels } from "@/utils/format";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +49,7 @@ export const Route = createFileRoute("/")({
 function DashboardPage() {
   const { data: user } = useQuery(currentUserQuery());
   const { data: users = [] } = useQuery(usersQuery());
-  const metrics = useQuery({ ...metricsQuery(user?.id ?? ""), enabled: Boolean(user) });
+  const metrics = useQuery(dashboardMetricsQuery());
   const { openTask, openStory } = useWorkItemDrawer();
   const [createOpen, setCreateOpen] = useState(false);
 

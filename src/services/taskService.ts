@@ -86,7 +86,7 @@ export async function getTasks(query: TaskQuery = {}): Promise<Task[]> {
     stories.map((s) => apiFetch<any[]>(`/api/stories/${s.id}/tasks`)),
   );
   let tasks = tasksData.flat().map(mapTask);
-  
+
   if (query.assigneeId) {
     tasks = tasks.filter((t) => t.assigneeId === query.assigneeId);
   }

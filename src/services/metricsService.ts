@@ -1,5 +1,9 @@
-import { clone, db, latency } from "./store";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { apiFetch } from "./api";
 import type { Project, Task, UserStory } from "@/types";
+import { mapProject } from "./projectService";
+import { mapStory } from "./storyService";
+import { mapTask } from "./taskService";
 
 export interface DashboardMetrics {
   totalProjects: number;
@@ -22,53 +26,37 @@ export interface DashboardMetrics {
   openStoriesList: UserStory[];
 }
 
-const OPEN_STATUSES: Task["status"][] = ["backlog", "todo", "in_progress", "in_review"];
+/** GET /api/metrics/dashboard */
+export async function getDashboardMetrics(): Promise<DashboardMetrics> {
+  const data = await apiFetch<any>("/api/metrics/dashboard");
 
-/** GET /metrics/dashboard — derived entirely from the stored entities. */
-export async function getDashboardMetrics(currentUserId: string): Promise<DashboardMetrics> {
-  await latency(260);
-  const nowIso = new Date().toISOString();
-  const tasks = db.tasks;
-  const visibleProjects = db.projects.filter((p) => p.status !== "archived");
+  const projectProgress = (data.project_progress || []).map((pp: any) => ({
+    project: mapProject(pp.project),
+    storyCount: Number(pp.story_count),
+    taskCount: Number(pp.task_count),
+    doneTasks: Number(pp.done_tasks),
+    progress: Number(pp.progress),
+  }));
 
-  const projectProgress = visibleProjects
-    .map((project) => {
-      const projectTasks = tasks.filter((t) => t.projectId === project.id);
-      const doneTasks = projectTasks.filter((t) => t.status === "done").length;
-      return {
-        project,
-        storyCount: db.stories.filter((s) => s.projectId === project.id).length,
-        taskCount: projectTasks.length,
-        doneTasks,
-        progress: projectTasks.length ? Math.round((doneTasks / projectTasks.length) * 100) : 0,
-      };
-    })
-    .sort((a, b) => b.progress - a.progress);
+  const visibleProjects = projectProgress.map((pp: any) => pp.project);
 
-  return clone({
-    totalProjects: db.projects.length,
-    activeProjects: db.projects.filter((p) => p.status === "active").length,
-    openStories: db.stories.filter((s) => s.status !== "done").length,
-    openTasks: tasks.filter((t) => OPEN_STATUSES.includes(t.status)).length,
-    completedTasks: tasks.filter((t) => t.status === "done").length,
-    overdueTasks: tasks.filter(
-      (t) => t.status !== "done" && t.dueDate !== null && t.dueDate < nowIso,
-    ).length,
-    statusDistribution: (["backlog", "todo", "in_progress", "in_review", "done"] as const).map(
-      (status) => ({ status, count: tasks.filter((t) => t.status === status).length }),
-    ),
+  return {
+    totalProjects: Number(data.total_projects),
+    activeProjects: Number(data.active_projects),
+    openStories: Number(data.open_stories),
+    openTasks: Number(data.open_tasks),
+    completedTasks: Number(data.completed_tasks),
+    overdueTasks: Number(data.overdue_tasks),
+    statusDistribution: (data.status_distribution || []).map((s: any) => ({
+      status: s.status as Task["status"],
+      count: Number(s.count),
+    })),
     projectProgress,
-    upcomingDeadlines: tasks
-      .filter((t) => t.status !== "done" && t.dueDate)
-      .sort((a, b) => (a.dueDate! < b.dueDate! ? -1 : 1))
-      .slice(0, 6),
-    myTasks: tasks
-      .filter((t) => t.assigneeId === currentUserId && t.status !== "done")
-      .sort((a, b) => (a.dueDate ?? "9").localeCompare(b.dueDate ?? "9"))
-      .slice(0, 6),
+    upcomingDeadlines: (data.upcoming_deadlines || []).map(mapTask),
+    myTasks: (data.my_tasks || []).map(mapTask),
     recentProjects: [...visibleProjects]
       .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
       .slice(0, 3),
-    openStoriesList: db.stories.filter((s) => s.status !== "done"),
-  });
+    openStoriesList: (data.open_stories_list || []).map(mapStory),
+  };
 }

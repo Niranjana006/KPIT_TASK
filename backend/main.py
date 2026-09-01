@@ -13,7 +13,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.database import init_db
-from backend.routers import auth, projects, stories, tasks, users, notifications, activity, metrics, jobs
+from backend.routers import (
+    auth, projects, stories, tasks, users,
+    notifications, activity, metrics, jobs, search
+)
 from backend.schemas import ErrorResponse
 
 
@@ -101,6 +104,7 @@ app.include_router(notifications.router, prefix="/api")
 app.include_router(activity.router, prefix="/api")
 app.include_router(metrics.router, prefix="/api")
 app.include_router(jobs.router, prefix="/api")
+app.include_router(search.router, prefix="/api")
 
 @app.get("/api/health", tags=["health"])
 async def health_check():
