@@ -2,6 +2,12 @@
 
 FlowForge is a complete Agile Project Management application developed for the KPIT technical evaluation. It provides teams with a robust, hierarchical structure to manage their software development lifecycle.
 
+## 🎥 Demo Walkthrough
+
+A complete walkthrough demonstrating the application's key features, user workflow, frontend-backend integration, persistent data, API functionality, and background workflow is available here:
+
+**[▶️ Watch the FlowForge Walkthrough](./docs/FlowForge_walkthrough_demo.mp4)**
+
 The application enforces a strict and organized hierarchy:
 **Project**
 &nbsp;&nbsp;└── **User Story**
