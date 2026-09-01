@@ -255,7 +255,7 @@ The test suite covers Authentication, CRUD operations, Authorization guards, Met
 
 **Current Status:**
 
-- `33 / 33` backend tests passed successfully.
+- `35 / 35` backend tests passed successfully.
 - Frontend builds and lints cleanly without errors.
 
 ---
