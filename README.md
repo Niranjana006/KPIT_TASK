@@ -1,6 +1,6 @@
 # FlowForge - Agile Project Management
 
-FlowForge is a complete Agile Project Management application developed for the KPIT technical evaluation. It provides teams with a robust, hierarchical structure to manage their software development lifecycle. 
+FlowForge is a complete Agile Project Management application developed for the KPIT technical evaluation. It provides teams with a robust, hierarchical structure to manage their software development lifecycle.
 
 The application enforces a strict and organized hierarchy:
 **Project**
@@ -13,9 +13,10 @@ FlowForge allows teams to seamlessly plan, track, and collaborate on their proje
 
 ## 1. Project Overview
 
-FlowForge enables project managers and developers to organize work efficiently. Projects contain User Stories, which define the requirements and features. User Stories are then broken down into granular Tasks that can be assigned, tracked, and completed. 
+FlowForge enables project managers and developers to organize work efficiently. Projects contain User Stories, which define the requirements and features. User Stories are then broken down into granular Tasks that can be assigned, tracked, and completed.
 
 **Key Capabilities:**
+
 - Full management of Projects, User Stories, and Tasks.
 - Visualizing work via Kanban boards and hierarchy trees.
 - Tracking overdue items through automated background workflows.
@@ -44,6 +45,7 @@ FlowForge enables project managers and developers to organize work efficiently. 
 ## 3. Technology Stack
 
 ### Frontend
+
 - **React 19**
 - **TanStack Start** (Routing & SSR)
 - **TanStack Query** (Data Fetching & State Management)
@@ -52,6 +54,7 @@ FlowForge enables project managers and developers to organize work efficiently. 
 - **Vite** (Build Tool)
 
 ### Backend
+
 - **FastAPI** (Web Framework)
 - **SQLAlchemy 2.0 (Async)** (ORM)
 - **SQLite** + **aiosqlite** (Database)
@@ -88,6 +91,7 @@ FlowForge follows a decoupled client-server architecture:
 **Service Layer Abstraction:** The frontend uses typed API services (e.g., `projectService.ts`, `taskService.ts`) to wrap `fetch` calls. These services parse backend responses, enforce camelCase conventions for the UI, and abstract API complexities away from React components.
 
 **Background Workflow:**
+
 ```text
    APScheduler
         │
@@ -114,15 +118,18 @@ The backend exposes a fully documented REST API. Interactive Swagger documentati
 ### Implemented Endpoints:
 
 **Authentication**
+
 - `POST /api/auth/login` - Authenticate and set httpOnly cookie
 - `POST /api/auth/logout` - Clear authentication cookie
 - `GET /api/auth/me` - Get current authenticated user
 
 **Users**
+
 - `GET /api/users` - List system users
 - `PATCH /api/users/me` - Update current user profile
 
 **Projects**
+
 - `GET /api/projects` - List accessible projects
 - `POST /api/projects` - Create a new project
 - `GET /api/projects/{id}` - Get project details
@@ -130,6 +137,7 @@ The backend exposes a fully documented REST API. Interactive Swagger documentati
 - `DELETE /api/projects/{id}` - Delete a project (Owner only)
 
 **User Stories**
+
 - `GET /api/projects/{project_id}/stories` - List stories in a project
 - `POST /api/projects/{project_id}/stories` - Create a story
 - `GET /api/stories/{id}` - Get story details
@@ -137,6 +145,7 @@ The backend exposes a fully documented REST API. Interactive Swagger documentati
 - `DELETE /api/stories/{id}` - Delete a story
 
 **Tasks**
+
 - `GET /api/stories/{story_id}/tasks` - List tasks in a story
 - `POST /api/stories/{story_id}/tasks` - Create a task
 - `GET /api/tasks/{id}` - Get task details
@@ -144,22 +153,27 @@ The backend exposes a fully documented REST API. Interactive Swagger documentati
 - `DELETE /api/tasks/{id}` - Delete a task
 
 **Notifications**
+
 - `GET /api/notifications` - List user notifications
 - `PATCH /api/notifications/{id}/read` - Mark specific notification as read
 - `PATCH /api/notifications/read-all` - Mark all as read
 - `DELETE /api/notifications/{id}` - Dismiss notification
 
 **Activity**
+
 - `GET /api/activity` - Global activity feed (accessible projects)
 - `GET /api/projects/{id}/activity` - Project-specific activity feed
 
 **Metrics**
+
 - `GET /api/metrics/dashboard` - Get calculated dashboard statistics
 
 **Search**
+
 - `GET /api/search?q={query}` - Global fuzzy search
 
 **Background Jobs**
+
 - `GET /api/jobs` - List recent background jobs (Admin/Monitoring)
 
 ---
@@ -169,6 +183,7 @@ The backend exposes a fully documented REST API. Interactive Swagger documentati
 FlowForge uses SQLite as its persistent storage. The schema enforces the `Project -> Story -> Task` hierarchy via strict foreign keys.
 
 ### Core Tables:
+
 - **`users`**: Stores user credentials, emails, and hashed passwords.
 - **`projects`**: Stores project metadata (key, name, status, owner_id).
 - **`project_members`**: Join table mapping `users` to `projects` for authorization.
@@ -196,18 +211,19 @@ FlowForge implements a robust, asynchronous background workflow to process overd
 ## 8. Design Decisions & Tradeoffs
 
 **Why SQLite?**
-SQLite was chosen for its simplicity, zero-configuration deployment, and low infrastructure overhead. It is perfectly suited for a small-team evaluation environment and makes it trivial to run the application locally. 
-*Tradeoff:* SQLite has concurrency limitations (database-level locking during writes), which makes it less ideal for high-throughput, globally distributed applications.
+SQLite was chosen for its simplicity, zero-configuration deployment, and low infrastructure overhead. It is perfectly suited for a small-team evaluation environment and makes it trivial to run the application locally.
+_Tradeoff:_ SQLite has concurrency limitations (database-level locking during writes), which makes it less ideal for high-throughput, globally distributed applications.
 
 **Why APScheduler + SQLite instead of Celery/Redis?**
 Integrating a heavy message broker (like Redis/RabbitMQ) and worker daemon (like Celery) would unnecessarily complicate the local setup. APScheduler integrated directly into the FastAPI lifecycle, combined with SQLite persistence for jobs, achieves the goal of a reliable, trackable background workflow with zero external dependencies.
-*Tradeoff:* APScheduler runs inside the application process. If the API server is horizontally scaled to multiple instances, this architecture would require distributed locking to prevent duplicate job execution.
+_Tradeoff:_ APScheduler runs inside the application process. If the API server is horizontally scaled to multiple instances, this architecture would require distributed locking to prevent duplicate job execution.
 
 ---
 
 ## 9. Security Considerations
 
 FlowForge implements essential security measures directly in the application code:
+
 - **JWT Authentication:** Secure token-based auth stored safely in `httpOnly` cookies to prevent XSS attacks.
 - **Password Hashing:** `bcrypt` is used to salt and hash all user passwords.
 - **Authorization Checks:** Every API endpoint validates that the requester is an active member of the target project before permitting reads or mutations.
@@ -228,10 +244,11 @@ After signing in, users can access the dashboard and manage projects, stories, a
 
 ## 10. Testing
 
-The backend is thoroughly tested using `pytest` and `pytest-asyncio`. 
+The backend is thoroughly tested using `pytest` and `pytest-asyncio`.
 The test suite covers Authentication, CRUD operations, Authorization guards, Metrics calculation, and the complete Background Worker lifecycle (including retries and idempotency).
 
 **Current Status:**
+
 - `33 / 33` backend tests passed successfully.
 - Frontend builds and lints cleanly without errors.
 
@@ -242,8 +259,9 @@ The test suite covers Authentication, CRUD operations, Authorization guards, Met
 Ensure you have Node.js (v20+) and Python (v3.10+) installed.
 
 ### 1. Environment Variables
-Create a `.env` file in the root directory (you can copy `.env.example` if available). 
-*Note: Do not include sensitive secrets in version control.*
+
+Create a `.env` file in the root directory (you can copy `.env.example` if available).
+_Note: Do not include sensitive secrets in version control._
 
 ```env
 SECRET_KEY=your-super-secret-key-for-jwt
@@ -252,6 +270,7 @@ FRONTEND_URL=http://localhost:8080
 ```
 
 ### 2. Backend Setup
+
 Open a terminal in the project root:
 
 ```bash
@@ -269,10 +288,12 @@ alembic upgrade head
 # Start the FastAPI server
 uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
 ```
+
 The API is now running at: `http://127.0.0.1:8000`
 Interactive Docs: `http://127.0.0.1:8000/docs`
 
 ### 3. Frontend Setup
+
 Open a separate terminal in the project root:
 
 ```bash
@@ -282,6 +303,7 @@ npm install
 # Start the Vite development server
 npm run dev
 ```
+
 The Frontend is now running at: `http://localhost:8080`
 
 ---
@@ -319,6 +341,7 @@ AI-assisted development tools were used during implementation for code generatio
 ## 14. Future Improvements
 
 While FlowForge is feature-complete for the current scope, future iterations for a larger-scale production deployment could include:
+
 - **PostgreSQL Migration:** Transitioning from SQLite to PostgreSQL to support high-concurrency read/write operations.
 - **Distributed Message Broker:** Moving background jobs to a robust Redis/Celery queue for true distributed processing and horizontal scaling.
 - **Real-time WebSockets:** Pushing live notifications and activity feed updates to the client via WebSockets instead of relying on frontend polling or manual refresh.

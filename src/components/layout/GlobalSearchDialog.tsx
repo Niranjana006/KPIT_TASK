@@ -38,7 +38,7 @@ export function GlobalSearchDialog({
   const close = () => onOpenChange(false);
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
+    <CommandDialog open={open} onOpenChange={onOpenChange} commandProps={{ shouldFilter: false }}>
       <CommandInput
         value={term}
         onValueChange={setTerm}
