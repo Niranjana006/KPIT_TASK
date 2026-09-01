@@ -23,11 +23,14 @@ export function ActivityTimeline({
   className?: string;
 }) {
   const { data: users = [] } = useQuery(usersQuery());
-  const { data: events, isPending } = useQuery(
-    activityQuery({ entityId, projectId, limit }),
-  );
+  const { data: events, isPending } = useQuery(activityQuery({ entityId, projectId, limit }));
 
-  if (isPending) return <div className={className}><RowSkeleton rows={3} /></div>;
+  if (isPending)
+    return (
+      <div className={className}>
+        <RowSkeleton rows={3} />
+      </div>
+    );
   if (!events?.length) {
     return (
       <EmptyState
@@ -49,9 +52,7 @@ export function ActivityTimeline({
             <div className="min-w-0 text-sm">
               <p className="text-foreground">
                 <span className="font-medium">{actor?.name ?? "Someone"}</span>{" "}
-                <span className="text-muted-foreground">
-                  {describeActivity(event, users)}
-                </span>
+                <span className="text-muted-foreground">{describeActivity(event, users)}</span>
               </p>
               <p className="text-xs text-muted-foreground">
                 <RelativeTime value={event.createdAt} />

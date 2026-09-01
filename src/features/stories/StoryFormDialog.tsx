@@ -22,12 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  errorMessage,
-  projectsQuery,
-  useRefreshWorkspace,
-  usersQuery,
-} from "@/hooks/queries";
+import { errorMessage, projectsQuery, useRefreshWorkspace, usersQuery } from "@/hooks/queries";
 import { createStory, updateStory } from "@/services/storyService";
 import type { Priority, StoryInput, UserStory, WorkStatus } from "@/types";
 import { priorities, priorityLabels, statusLabels, workStatuses } from "@/utils/format";
@@ -208,7 +203,9 @@ export function StoryFormDialog({
             label="Description"
             required
             error={errors.description}
-            hint={errors.description ? undefined : "As a <role>, I want <capability> so that <benefit>."}
+            hint={
+              errors.description ? undefined : "As a <role>, I want <capability> so that <benefit>."
+            }
           >
             <Textarea
               id="story-description"
@@ -232,7 +229,9 @@ export function StoryFormDialog({
                   <Input
                     id={`story-criteria-${index}`}
                     value={criterion}
-                    placeholder={index === 0 ? "User can enter an email address" : "Add a criterion"}
+                    placeholder={
+                      index === 0 ? "User can enter an email address" : "Add a criterion"
+                    }
                     onChange={(event) => setCriterion(index, event.target.value)}
                   />
                   <Button

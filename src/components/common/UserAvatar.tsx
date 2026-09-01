@@ -56,13 +56,7 @@ export function UserAvatar({
   );
 }
 
-export function AssigneeChip({
-  user,
-  className,
-}: {
-  user?: User | null;
-  className?: string;
-}) {
+export function AssigneeChip({ user, className }: { user?: User | null; className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2 text-sm", className)}>
       <UserAvatar user={user} size="sm" />

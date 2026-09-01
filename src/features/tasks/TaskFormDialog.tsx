@@ -112,8 +112,7 @@ export function TaskFormDialog({
   }, [open, task, projectId, storyId, projects]);
 
   const mutation = useMutation({
-    mutationFn: async (input: TaskInput) =>
-      task ? updateTask(task.id, input) : createTask(input),
+    mutationFn: async (input: TaskInput) => (task ? updateTask(task.id, input) : createTask(input)),
     onSuccess: (saved) => {
       refresh();
       toast.success(task ? "Task updated" : "Task created", {

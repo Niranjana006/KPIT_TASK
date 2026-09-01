@@ -45,9 +45,7 @@ export function GlobalSearchDialog({
         placeholder="Search projects, stories and tasks…"
       />
       <CommandList className="max-h-[60vh]">
-        <CommandEmpty>
-          {isFetching ? "Searching…" : `No results for “${term}”.`}
-        </CommandEmpty>
+        <CommandEmpty>{isFetching ? "Searching…" : `No results for “${term}”.`}</CommandEmpty>
 
         {results?.projects.length ? (
           <CommandGroup heading="Projects">

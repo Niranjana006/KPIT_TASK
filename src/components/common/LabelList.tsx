@@ -22,9 +22,7 @@ export function LabelList({
           {label}
         </li>
       ))}
-      {hidden > 0 ? (
-        <li className="text-[11px] text-muted-foreground">+{hidden}</li>
-      ) : null}
+      {hidden > 0 ? <li className="text-[11px] text-muted-foreground">+{hidden}</li> : null}
     </ul>
   );
 }

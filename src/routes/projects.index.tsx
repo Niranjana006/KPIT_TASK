@@ -19,8 +19,15 @@ import {
 } from "@/components/ui/select";
 import { ProjectCard } from "@/features/projects/ProjectCard";
 import { ProjectFormDialog } from "@/features/projects/ProjectFormDialog";
-import { errorMessage, projectsQuery, storiesQuery, tasksQuery, usersQuery, useRefreshWorkspace } from "@/hooks/queries";
-import { archiveProject } from "@/services/projectService";
+import {
+  errorMessage,
+  projectsQuery,
+  storiesQuery,
+  tasksQuery,
+  usersQuery,
+  useRefreshWorkspace,
+} from "@/hooks/queries";
+import { deleteProject } from "@/services/projectService";
 import type { Project, ProjectStatus } from "@/types";
 import { projectStatusLabels, projectStatuses } from "@/utils/format";
 
@@ -54,17 +61,17 @@ function ProjectsPage() {
   const [status, setStatus] = useState<ProjectStatus | "all">("all");
   const [formProject, setFormProject] = useState<Project | undefined>();
   const [formOpen, setFormOpen] = useState(false);
-  const [archiveTarget, setArchiveTarget] = useState<Project | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
 
-  const archive = useMutation({
-    mutationFn: (id: string) => archiveProject(id),
-    onSuccess: (project) => {
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteProject(id),
+    onSuccess: (_, deletedId) => {
       refresh();
-      setArchiveTarget(null);
-      toast.success(`${project.name} archived`);
+      setDeleteTarget(null);
+      toast.success("Project deleted");
     },
     onError: (error) =>
-      toast.error("Couldn’t archive project", { description: errorMessage(error) }),
+      toast.error("Couldn’t delete project", { description: errorMessage(error) }),
   });
 
   const visible = useMemo(() => {
@@ -149,7 +156,7 @@ function ProjectsPage() {
                   setFormProject(project);
                   setFormOpen(true);
                 }}
-                onArchive={() => setArchiveTarget(project)}
+                onDelete={() => setDeleteTarget(project)}
               />
             );
           })}
@@ -175,14 +182,14 @@ function ProjectsPage() {
 
       <ProjectFormDialog open={formOpen} onOpenChange={setFormOpen} project={formProject} />
       <ConfirmDialog
-        open={Boolean(archiveTarget)}
-        onOpenChange={(open) => !open && setArchiveTarget(null)}
-        title={`Archive ${archiveTarget?.name ?? "project"}?`}
-        description="Archived projects stay readable and keep their stories and tasks, but drop out of active reporting."
-        confirmLabel="Archive project"
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={`Delete ${deleteTarget?.name ?? "project"}?`}
+        description="Deleting a project is permanent. All associated stories and tasks will be removed."
+        confirmLabel="Delete project"
         destructive
-        loading={archive.isPending}
-        onConfirm={() => archiveTarget && archive.mutate(archiveTarget.id)}
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
       />
     </div>
   );

@@ -68,10 +68,7 @@ function DashboardPage() {
       {metrics.isPending ? (
         <CardSkeletonGrid count={4} />
       ) : metrics.isError ? (
-        <ErrorState
-          error={metrics.error}
-          onRetry={() => metrics.refetch()}
-        />
+        <ErrorState error={metrics.error} onRetry={() => metrics.refetch()} />
       ) : metrics.data ? (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -276,10 +273,7 @@ function DashboardPage() {
                       <span className="text-ref mr-2">{story.ref}</span>
                       {story.title}
                     </button>
-                    <UserAvatar
-                      user={users.find((u) => u.id === story.assigneeId)}
-                      size="xs"
-                    />
+                    <UserAvatar user={users.find((u) => u.id === story.assigneeId)} size="xs" />
                   </li>
                 ))}
               </ul>

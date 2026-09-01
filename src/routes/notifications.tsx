@@ -65,7 +65,11 @@ function NotificationsPage() {
         title="Notifications"
         description={unread ? `${unread} unread updates` : "You're all caught up."}
         actions={
-          <Button variant="outline" disabled={!unread || readAll.isPending} onClick={() => readAll.mutate()}>
+          <Button
+            variant="outline"
+            disabled={!unread || readAll.isPending}
+            onClick={() => readAll.mutate()}
+          >
             <Check className="size-4" /> Mark all read
           </Button>
         }

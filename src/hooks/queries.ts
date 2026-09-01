@@ -1,6 +1,7 @@
 import { queryOptions, useQueryClient } from "@tanstack/react-query";
 
 import * as activityService from "@/services/activityService";
+import * as authService from "@/services/authService";
 import * as metricsService from "@/services/metricsService";
 import * as notificationService from "@/services/notificationService";
 import * as projectService from "@/services/projectService";
@@ -29,8 +30,9 @@ export const usersQuery = () =>
 export const currentUserQuery = () =>
   queryOptions({
     queryKey: qk.currentUser,
-    queryFn: userService.getCurrentUser,
+    queryFn: authService.getMe,
     staleTime: 60_000,
+    retry: false, // Don't retry on 401
   });
 
 export const projectsQuery = () =>

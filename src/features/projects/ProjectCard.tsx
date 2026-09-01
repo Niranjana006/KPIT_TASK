@@ -23,7 +23,7 @@ export function ProjectCard({
   taskCount,
   doneTasks,
   onEdit,
-  onArchive,
+  onDelete,
 }: {
   project: Project;
   owner?: User;
@@ -31,7 +31,7 @@ export function ProjectCard({
   taskCount: number;
   doneTasks: number;
   onEdit: () => void;
-  onArchive: () => void;
+  onDelete: () => void;
 }) {
   const progress = percent(doneTasks, taskCount);
 
@@ -61,12 +61,8 @@ export function ProjectCard({
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={onEdit}>Edit details</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={onArchive}
-              disabled={project.status === "archived"}
-              className="text-destructive"
-            >
-              Archive project
+            <DropdownMenuItem onSelect={onDelete} className="text-destructive">
+              Delete project
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

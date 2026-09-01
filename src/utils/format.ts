@@ -9,13 +9,7 @@ export const statusLabels: Record<WorkStatus, string> = {
   done: "Done",
 };
 
-export const workStatuses: WorkStatus[] = [
-  "backlog",
-  "todo",
-  "in_progress",
-  "in_review",
-  "done",
-];
+export const workStatuses: WorkStatus[] = ["backlog", "todo", "in_progress", "in_review", "done"];
 
 export const priorityLabels: Record<Priority, string> = {
   low: "Low",

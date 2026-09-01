@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ProjectFormDialog } from "@/features/projects/ProjectFormDialog";
 import { StoryFormDialog } from "@/features/stories/StoryFormDialog";
 import { errorMessage, projectQuery, usersQuery, useRefreshWorkspace } from "@/hooks/queries";
-import { archiveProject } from "@/services/projectService";
+import { deleteProject } from "@/services/projectService";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/utils/format";
 
@@ -52,17 +52,17 @@ function ProjectDetailLayout() {
   const refresh = useRefreshWorkspace();
   const [editOpen, setEditOpen] = useState(false);
   const [storyOpen, setStoryOpen] = useState(false);
-  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const archive = useMutation({
-    mutationFn: () => archiveProject(projectId),
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteProject(projectId),
     onSuccess: (updated) => {
       refresh();
-      setArchiveOpen(false);
-      toast.success(`${updated.name} archived`);
+      setDeleteOpen(false);
+      toast.success(`Project deleted`);
     },
     onError: (error) =>
-      toast.error("Couldn’t archive project", { description: errorMessage(error) }),
+      toast.error("Couldn’t delete project", { description: errorMessage(error) }),
   });
 
   if (project.isPending) return <RowSkeleton rows={6} />;
@@ -84,12 +84,8 @@ function ProjectDetailLayout() {
             <Button variant="outline" onClick={() => setEditOpen(true)}>
               <Pencil className="size-4" /> Edit
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => setArchiveOpen(true)}
-              disabled={project.data.status === "archived"}
-            >
-              Archive
+            <Button variant="outline" onClick={() => setDeleteOpen(true)}>
+              Delete
             </Button>
             <Button onClick={() => setStoryOpen(true)}>
               <Plus className="size-4" /> New story
@@ -152,14 +148,14 @@ function ProjectDetailLayout() {
       <ProjectFormDialog open={editOpen} onOpenChange={setEditOpen} project={project.data} />
       <StoryFormDialog open={storyOpen} onOpenChange={setStoryOpen} projectId={projectId} />
       <ConfirmDialog
-        open={archiveOpen}
-        onOpenChange={setArchiveOpen}
-        title={`Archive ${project.data.name}?`}
-        description="The project drops out of active reporting but keeps all stories, tasks and history."
-        confirmLabel="Archive project"
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title={`Delete ${project.data.name}?`}
+        description="Deleting a project is permanent. All associated stories and tasks will be removed."
+        confirmLabel="Delete project"
         destructive
-        loading={archive.isPending}
-        onConfirm={() => archive.mutate()}
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate()}
       />
       <p className="sr-only">
         <ListTree className="size-3" aria-hidden /> Project, story and task hierarchy

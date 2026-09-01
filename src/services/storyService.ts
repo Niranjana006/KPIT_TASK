@@ -15,9 +15,7 @@ import type { ID, StoryInput, UserStory } from "@/types";
 /** GET /stories?projectId= */
 export async function getStories(projectId?: ID): Promise<UserStory[]> {
   await latency();
-  const rows = projectId
-    ? db.stories.filter((s) => s.projectId === projectId)
-    : db.stories;
+  const rows = projectId ? db.stories.filter((s) => s.projectId === projectId) : db.stories;
   return clone(rows);
 }
 
@@ -67,10 +65,7 @@ export async function createStory(input: StoryInput): Promise<UserStory> {
 }
 
 /** PATCH /stories/:id */
-export async function updateStory(
-  id: ID,
-  patch: Partial<StoryInput>,
-): Promise<UserStory> {
+export async function updateStory(id: ID, patch: Partial<StoryInput>): Promise<UserStory> {
   await latency(280);
   const current = db.stories.find((s) => s.id === id);
   if (!current) throw new NotFoundError("User story", id);
@@ -96,8 +91,20 @@ export async function updateStory(
     entityTitle: merged.title,
     projectId: merged.projectId,
     storyId: merged.id,
-    from: action === "status_changed" ? current.status : action === "priority_changed" ? current.priority : null,
-    to: action === "status_changed" ? merged.status : action === "priority_changed" ? merged.priority : action === "assigned" ? merged.assigneeId : null,
+    from:
+      action === "status_changed"
+        ? current.status
+        : action === "priority_changed"
+          ? current.priority
+          : null,
+    to:
+      action === "status_changed"
+        ? merged.status
+        : action === "priority_changed"
+          ? merged.priority
+          : action === "assigned"
+            ? merged.assigneeId
+            : null,
   });
   return clone(merged);
 }

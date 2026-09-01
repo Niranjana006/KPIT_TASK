@@ -18,6 +18,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { currentUserQuery, notificationsQuery, useRefreshWorkspace } from "@/hooks/queries";
 import { markAllRead } from "@/services/notificationService";
+import { logout } from "@/services/authService";
 import { ProjectFormDialog } from "@/features/projects/ProjectFormDialog";
 import { StoryFormDialog } from "@/features/stories/StoryFormDialog";
 import { TaskFormDialog } from "@/features/tasks/TaskFormDialog";
@@ -87,7 +88,12 @@ export function Topbar({
 
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label={`Notifications (${unread.length} unread)`} className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Notifications (${unread.length} unread)`}
+              className="relative"
+            >
               <Bell className="size-4" />
               {unread.length ? (
                 <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary" />
@@ -160,11 +166,15 @@ export function Topbar({
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onSelect={() =>
-                toast.info("Demo session", {
-                  description: "Sign-out arrives with the authentication backend.",
-                })
-              }
+              onSelect={async () => {
+                try {
+                  await logout();
+                  refresh(); // Invalidate all queries and trigger redirect in __root
+                  toast.success("Signed out successfully");
+                } catch (e) {
+                  toast.error("Failed to sign out");
+                }
+              }}
             >
               Sign out
             </DropdownMenuItem>

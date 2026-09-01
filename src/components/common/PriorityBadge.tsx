@@ -38,7 +38,11 @@ export function PriorityBadge({
       title={`${priorityLabels[priority]} priority`}
     >
       <Icon className="size-3.5" aria-hidden />
-      {withLabel ? priorityLabels[priority] : <span className="sr-only">{priorityLabels[priority]}</span>}
+      {withLabel ? (
+        priorityLabels[priority]
+      ) : (
+        <span className="sr-only">{priorityLabels[priority]}</span>
+      )}
     </span>
   );
 }

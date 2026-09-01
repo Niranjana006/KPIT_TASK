@@ -27,13 +27,7 @@ const columnAccent: Record<WorkStatus, string> = {
   done: "bg-status-done",
 };
 
-export function KanbanBoard({
-  tasks,
-  projectId,
-}: {
-  tasks: Task[];
-  projectId: string;
-}) {
+export function KanbanBoard({ tasks, projectId }: { tasks: Task[]; projectId: string }) {
   const refresh = useRefreshWorkspace();
   const [dragOver, setDragOver] = useState<WorkStatus | null>(null);
   const [addTaskOpen, setAddTaskOpen] = useState(false);

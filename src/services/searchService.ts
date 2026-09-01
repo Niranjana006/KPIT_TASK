@@ -18,20 +18,13 @@ export async function search(query: string): Promise<SearchResults> {
       tasks: clone(db.tasks.slice(0, 4)),
     };
   }
-  const match = (...fields: string[]) =>
-    fields.some((f) => f.toLowerCase().includes(q));
+  const match = (...fields: string[]) => fields.some((f) => f.toLowerCase().includes(q));
 
   return {
-    projects: clone(
-      db.projects.filter((p) => match(p.name, p.key, p.description)).slice(0, 6),
-    ),
-    stories: clone(
-      db.stories.filter((s) => match(s.title, s.ref, s.description)).slice(0, 8),
-    ),
+    projects: clone(db.projects.filter((p) => match(p.name, p.key, p.description)).slice(0, 6)),
+    stories: clone(db.stories.filter((s) => match(s.title, s.ref, s.description)).slice(0, 8)),
     tasks: clone(
-      db.tasks
-        .filter((t) => match(t.title, t.ref, t.description, t.labels.join(" ")))
-        .slice(0, 10),
+      db.tasks.filter((t) => match(t.title, t.ref, t.description, t.labels.join(" "))).slice(0, 10),
     ),
   };
 }

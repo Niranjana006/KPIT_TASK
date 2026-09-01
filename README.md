@@ -14,7 +14,7 @@ The application manages work using this mandatory hierarchy:
 
 Project
 
-  └── User Story
+└── User Story
 
         └── Task
 
@@ -494,17 +494,17 @@ Provide a hierarchical view such as:
 
 PROJECT
 
- ├── US-101 Authentication
+├── US-101 Authentication
 
- │    ├── TASK-201 Login API
+│ ├── TASK-201 Login API
 
- │    ├── TASK-202 Login UI
+│ ├── TASK-202 Login UI
 
- │    └── TASK-203 Validation
+│ └── TASK-203 Validation
 
- │
+│
 
- └── US-102 Dashboard
+└── US-102 Dashboard
 
       ├── TASK-204 Dashboard API
 
@@ -752,13 +752,13 @@ Suggested structure:
 
 src/
 
-  components/
+components/
 
-  pages/
+pages/
 
-  layouts/
+layouts/
 
-  features/
+features/
 
     projects/
 
@@ -770,15 +770,15 @@ src/
 
     notifications/
 
-  services/
+services/
 
-  hooks/
+hooks/
 
-  types/
+types/
 
-  data/
+data/
 
-  utils/
+utils/
 
 Keep domain logic separated from presentation.
 

@@ -53,7 +53,7 @@ export const nextId = (prefix: string): ID => `${prefix}${++counter}`;
 
 export const now = () => new Date().toISOString();
 
-export const clone = <T,>(value: T): T =>
+export const clone = <T>(value: T): T =>
   typeof structuredClone === "function"
     ? structuredClone(value)
     : (JSON.parse(JSON.stringify(value)) as T);
@@ -93,10 +93,7 @@ export function recordActivity(
 }
 
 export function pushNotification(notification: Omit<AppNotification, "id" | "createdAt">) {
-  db.notifications = [
-    { id: nextId("n"), createdAt: now(), ...notification },
-    ...db.notifications,
-  ];
+  db.notifications = [{ id: nextId("n"), createdAt: now(), ...notification }, ...db.notifications];
 }
 
 export const actionLabels: Record<ActivityAction, string> = {

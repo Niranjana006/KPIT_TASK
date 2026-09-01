@@ -20,9 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         const target = event.target as HTMLElement | null;
         const editable =
           target &&
-          (target.tagName === "INPUT" ||
-            target.tagName === "TEXTAREA" ||
-            target.isContentEditable);
+          (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
         if (!editable) {
           event.preventDefault();
           setSearchOpen(true);

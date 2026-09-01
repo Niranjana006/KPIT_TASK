@@ -40,9 +40,7 @@ export async function getDashboardMetrics(currentUserId: string): Promise<Dashbo
         storyCount: db.stories.filter((s) => s.projectId === project.id).length,
         taskCount: projectTasks.length,
         doneTasks,
-        progress: projectTasks.length
-          ? Math.round((doneTasks / projectTasks.length) * 100)
-          : 0,
+        progress: projectTasks.length ? Math.round((doneTasks / projectTasks.length) * 100) : 0,
       };
     })
     .sort((a, b) => b.progress - a.progress);
@@ -66,7 +64,7 @@ export async function getDashboardMetrics(currentUserId: string): Promise<Dashbo
       .slice(0, 6),
     myTasks: tasks
       .filter((t) => t.assigneeId === currentUserId && t.status !== "done")
-      .sort((a, b) => (a.dueDate ?? "9") .localeCompare(b.dueDate ?? "9"))
+      .sort((a, b) => (a.dueDate ?? "9").localeCompare(b.dueDate ?? "9"))
       .slice(0, 6),
     recentProjects: [...visibleProjects]
       .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))

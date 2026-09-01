@@ -330,8 +330,8 @@ export function StoryDrawer({
             confirmLabel="Delete story and tasks"
             description={
               <>
-                <strong className="text-foreground">{story.title}</strong> and its{" "}
-                {tasks.length} task{tasks.length === 1 ? "" : "s"} will be permanently removed.
+                <strong className="text-foreground">{story.title}</strong> and its {tasks.length}{" "}
+                task{tasks.length === 1 ? "" : "s"} will be permanently removed.
               </>
             }
             onConfirm={() => remove.mutate()}

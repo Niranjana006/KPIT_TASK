@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "@/layouts/AppShell";
 import { Toaster } from "@/components/ui/sonner";
+import { currentUserQuery } from "@/hooks/queries";
+import { useQuery } from "@tanstack/react-query";
 
 function NotFoundComponent() {
   return (
@@ -128,15 +130,58 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function AuthWrapper() {
+  const router = useRouter();
+
+  // Skip auth check if we're exactly on the login route
+  const isLogin = router.state.location.pathname === "/login";
+
+  const {
+    data: user,
+    isPending,
+    isError,
+  } = useQuery({
+    ...currentUserQuery(),
+    enabled: !isLogin,
+  });
+
+  // Redirect to login if not authenticated and not already there
+  useEffect(() => {
+    if (!isLogin && isError) {
+      router.navigate({ to: "/login" });
+    }
+  }, [isLogin, isError, router]);
+
+  // Handle redirect from login if already authenticated
+  useEffect(() => {
+    if (isLogin && user) {
+      router.navigate({ to: "/" });
+    }
+  }, [isLogin, user, router]);
+
+  if (!isLogin && isPending) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  return isLogin ? (
+    <Outlet />
+  ) : (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </AppShell>
+      <AuthWrapper />
       <Toaster position="bottom-right" richColors />
     </QueryClientProvider>
   );

@@ -101,7 +101,10 @@ export function TaskDrawer({
             </div>
           ) : error || !task ? (
             <div className="p-6">
-              <ErrorState error={error ?? new Error("Task unavailable")} onRetry={() => refetch()} />
+              <ErrorState
+                error={error ?? new Error("Task unavailable")}
+                onRetry={() => refetch()}
+              />
             </div>
           ) : (
             <>

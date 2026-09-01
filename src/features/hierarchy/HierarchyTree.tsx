@@ -53,9 +53,7 @@ export function HierarchyTree({
                   type="button"
                   aria-expanded={!isCollapsed}
                   aria-label={`${isCollapsed ? "Expand" : "Collapse"} ${story.ref}`}
-                  onClick={() =>
-                    setCollapsed((state) => ({ ...state, [story.id]: !isCollapsed }))
-                  }
+                  onClick={() => setCollapsed((state) => ({ ...state, [story.id]: !isCollapsed }))}
                   className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   {isCollapsed ? (
