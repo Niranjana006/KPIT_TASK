@@ -1,25 +1,25 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiFetch } from "./api";
 import type { ID, Project, ProjectInput } from "@/types";
 
-function mapProject(data: unknown): Project {
-  const d = data as Record<string, unknown>;
+function mapProject(data: any): Project {
   return {
-    id: String(d.id),
-    key: String(d.key),
-    name: String(d.name),
-    description: String(d.description),
-    status: d.status as Project["status"],
-    ownerId: String(d.owner_id),
-    memberIds: Array.isArray(d.member_ids) ? d.member_ids.map(String) : [],
-    startDate: d.start_date ? String(d.start_date) : "",
-    dueDate: d.due_date ? String(d.due_date) : "",
-    createdAt: String(d.created_at),
-    updatedAt: String(d.updated_at),
+    id: String(data.id),
+    key: String(data.key),
+    name: String(data.name),
+    description: String(data.description),
+    status: data.status as Project["status"],
+    ownerId: String(data.owner_id),
+    memberIds: Array.isArray(data.member_ids) ? data.member_ids.map(String) : [],
+    startDate: data.start_date ? String(data.start_date) : "",
+    dueDate: data.due_date ? String(data.due_date) : "",
+    createdAt: String(data.created_at),
+    updatedAt: String(data.updated_at),
   };
 }
 
-function mapProjectInput(input: Partial<ProjectInput>): Record<string, unknown> {
-  const data: Record<string, unknown> = { ...input };
+function mapProjectInput(input: Partial<ProjectInput>): any {
+  const data: any = { ...input };
   if (input.ownerId !== undefined) {
     data.owner_id = input.ownerId;
     delete data.ownerId;
@@ -37,19 +37,19 @@ function mapProjectInput(input: Partial<ProjectInput>): Record<string, unknown> 
 
 /** GET /api/projects */
 export async function getProjects(): Promise<Project[]> {
-  const data = await apiFetch<unknown[]>("/api/projects");
+  const data = await apiFetch<any[]>("/api/projects");
   return data.map(mapProject);
 }
 
 /** GET /api/projects/:id */
 export async function getProject(id: ID): Promise<Project> {
-  const data = await apiFetch<unknown>(`/api/projects/${id}`);
+  const data = await apiFetch<any>(`/api/projects/${id}`);
   return mapProject(data);
 }
 
 /** POST /api/projects */
 export async function createProject(input: ProjectInput): Promise<Project> {
-  const data = await apiFetch<unknown>("/api/projects", {
+  const data = await apiFetch<any>("/api/projects", {
     method: "POST",
     body: JSON.stringify(mapProjectInput(input)),
   });
@@ -58,7 +58,7 @@ export async function createProject(input: ProjectInput): Promise<Project> {
 
 /** PATCH /api/projects/:id */
 export async function updateProject(id: ID, patch: Partial<ProjectInput>): Promise<Project> {
-  const data = await apiFetch<unknown>(`/api/projects/${id}`, {
+  const data = await apiFetch<any>(`/api/projects/${id}`, {
     method: "PATCH",
     body: JSON.stringify(mapProjectInput(patch)),
   });

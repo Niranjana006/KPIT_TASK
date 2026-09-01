@@ -34,9 +34,11 @@ import { dueLabel } from "@/utils/format";
 
 export function StoryDrawer({
   storyId,
+  projectId,
   onOpenChange,
 }: {
   storyId: string | null;
+  projectId: string | null;
   onOpenChange: (open: boolean) => void;
 }) {
   const refresh = useRefreshWorkspace();
@@ -52,8 +54,8 @@ export function StoryDrawer({
     refetch,
   } = useQuery({
     queryKey: ["stories", "detail", storyId],
-    queryFn: () => getStory(storyId as string),
-    enabled: Boolean(storyId),
+    queryFn: () => getStory(projectId as string, storyId as string),
+    enabled: Boolean(storyId && projectId),
   });
 
   const { data: users = [] } = useQuery(usersQuery());
@@ -68,7 +70,7 @@ export function StoryDrawer({
   });
 
   const patch = useMutation({
-    mutationFn: (input: Partial<StoryInput>) => updateStory(story!.id, input),
+    mutationFn: (input: Partial<StoryInput>) => updateStory(story!.projectId, story!.id, input),
     onSuccess: (saved, input) => {
       refresh();
       toast.success(`${saved.ref} updated`, {
@@ -79,7 +81,7 @@ export function StoryDrawer({
   });
 
   const remove = useMutation({
-    mutationFn: () => deleteStory(story!.id),
+    mutationFn: () => deleteStory(story!.projectId, story!.id),
     onSuccess: ({ deletedTasks }) => {
       refresh();
       toast.success(`${story?.ref} deleted`, {

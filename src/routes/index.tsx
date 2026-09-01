@@ -267,7 +267,7 @@ function DashboardPage() {
                   <li key={story.id} className="flex items-center gap-2 py-2.5">
                     <button
                       type="button"
-                      onClick={() => openStory(story.id)}
+                      onClick={() => openStory(story.id, story.projectId)}
                       className="min-w-0 flex-1 truncate text-left text-sm text-foreground hover:underline"
                     >
                       <span className="text-ref mr-2">{story.ref}</span>

@@ -76,7 +76,7 @@ export function GlobalSearchDialog({
                   value={`${term} story ${story.ref} ${story.title}`}
                   onSelect={() => {
                     close();
-                    openStory(story.id);
+                    openStory(story.id, story.projectId);
                   }}
                 >
                   <ListTree className="size-4 text-muted-foreground" />

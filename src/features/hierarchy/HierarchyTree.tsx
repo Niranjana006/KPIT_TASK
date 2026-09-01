@@ -64,7 +64,7 @@ export function HierarchyTree({
                 </button>
                 <button
                   type="button"
-                  onClick={() => openStory(story.id)}
+                  onClick={() => openStory(story.id, story.projectId)}
                   className="flex min-w-0 flex-1 items-center gap-2 rounded px-2 py-1.5 text-left transition-colors hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   <span className="text-ref shrink-0">{story.ref}</span>

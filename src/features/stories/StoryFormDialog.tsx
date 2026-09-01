@@ -97,7 +97,7 @@ export function StoryFormDialog({
 
   const mutation = useMutation({
     mutationFn: async (input: StoryInput) =>
-      story ? updateStory(story.id, input) : createStory(input),
+      story ? updateStory(story.projectId, story.id, input) : createStory(input),
     onSuccess: (saved) => {
       refresh();
       toast.success(story ? "Story updated" : "Story created", {

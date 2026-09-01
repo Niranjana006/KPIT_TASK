@@ -8,7 +8,7 @@ export function WorkItemDrawerProvider({ children }: { children: ReactNode }) {
   const [selection, setSelection] = useState<WorkItemSelection>(null);
 
   const openTask = useCallback((id: string) => setSelection({ kind: "task", id }), []);
-  const openStory = useCallback((id: string) => setSelection({ kind: "story", id }), []);
+  const openStory = useCallback((id: string, projectId: string) => setSelection({ kind: "story", id, projectId }), []);
   const close = useCallback(() => setSelection(null), []);
 
   const api = useMemo(
@@ -25,6 +25,7 @@ export function WorkItemDrawerProvider({ children }: { children: ReactNode }) {
       />
       <StoryDrawer
         storyId={selection?.kind === "story" ? selection.id : null}
+        projectId={selection?.kind === "story" ? selection.projectId : null}
         onOpenChange={(open) => !open && close()}
       />
     </WorkItemDrawerContext.Provider>

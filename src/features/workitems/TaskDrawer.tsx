@@ -56,7 +56,7 @@ export function TaskDrawer({
   const { data: users = [] } = useQuery(usersQuery());
   const { data: story } = useQuery({
     queryKey: ["stories", "detail", task?.storyId],
-    queryFn: () => getStory(task!.storyId),
+    queryFn: () => getStory(task!.projectId, task!.storyId),
     enabled: Boolean(task?.storyId),
   });
   const { data: project } = useQuery({
@@ -123,7 +123,7 @@ export function TaskDrawer({
                         {" › "}
                         <button
                           type="button"
-                          onClick={() => openStory(story.id)}
+                          onClick={() => openStory(story.id, story.projectId)}
                           className="font-medium text-primary underline-offset-2 hover:underline"
                         >
                           {story.ref} {story.title}

@@ -74,7 +74,7 @@ function StoriesPage() {
               <li key={story.id}>
                 <button
                   type="button"
-                  onClick={() => openStory(story.id)}
+                  onClick={() => openStory(story.id, story.projectId)}
                   className="panel w-full p-4 text-left transition-colors hover:border-ring/40 hover:bg-surface-raised focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   <span className="flex items-center gap-2">

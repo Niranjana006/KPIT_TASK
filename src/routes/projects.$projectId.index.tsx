@@ -52,7 +52,7 @@ function ProjectOverview() {
                 <li key={story.id} className="py-3">
                   <button
                     type="button"
-                    onClick={() => openStory(story.id)}
+                    onClick={() => openStory(story.id, story.projectId)}
                     className="w-full text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                   >
                     <span className="flex flex-wrap items-center gap-2">

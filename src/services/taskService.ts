@@ -1,16 +1,5 @@
-import {
-  NotFoundError,
-  ValidationError,
-  clone,
-  db,
-  latency,
-  nextId,
-  nextRef,
-  now,
-  pushNotification,
-  recordActivity,
-} from "./store";
-import { CURRENT_USER_ID } from "@/data/seed";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { apiFetch } from "./api";
 import type { ID, Task, TaskInput, WorkStatus } from "@/types";
 
 export interface TaskQuery {
@@ -19,138 +8,113 @@ export interface TaskQuery {
   assigneeId?: ID;
 }
 
+export function mapTask(data: any): Task {
+  return {
+    id: String(data.id),
+    ref: String(data.ref),
+    projectId: String(data.project_id),
+    storyId: String(data.story_id),
+    title: String(data.title),
+    description: String(data.description),
+    status: data.status as WorkStatus,
+    priority: data.priority as Task["priority"],
+    assigneeId: data.assignee_id ? String(data.assignee_id) : null,
+    dueDate: data.due_date ? String(data.due_date) : null,
+    estimatedHours: Number(data.estimated_hours),
+    labels: Array.isArray(data.labels) ? data.labels.map(String) : [],
+    createdAt: String(data.created_at),
+    updatedAt: String(data.updated_at),
+    completedAt: data.completed_at ? String(data.completed_at) : null,
+  };
+}
+
+export function mapTaskInput(input: Partial<TaskInput>): any {
+  const data: any = { ...input };
+  if (input.projectId !== undefined) {
+    data.project_id = input.projectId;
+    delete data.projectId;
+  }
+  if (input.storyId !== undefined) {
+    data.story_id = input.storyId;
+    delete data.storyId;
+  }
+  if (input.assigneeId !== undefined) {
+    data.assignee_id = input.assigneeId;
+    delete data.assigneeId;
+  }
+  if (input.dueDate !== undefined) {
+    data.due_date = input.dueDate;
+    delete data.dueDate;
+  }
+  if (input.estimatedHours !== undefined) {
+    data.estimated_hours = input.estimatedHours;
+    delete data.estimatedHours;
+  }
+  return data;
+}
+
 /** GET /tasks?storyId=&projectId=&assigneeId= */
 export async function getTasks(query: TaskQuery = {}): Promise<Task[]> {
-  await latency();
-  const rows = db.tasks.filter(
-    (t) =>
-      (!query.storyId || t.storyId === query.storyId) &&
-      (!query.projectId || t.projectId === query.projectId) &&
-      (!query.assigneeId || t.assigneeId === query.assigneeId),
+  // If storyId is provided, we can fetch tasks directly
+  if (query.storyId) {
+    const data = await apiFetch<any[]>(`/api/stories/${query.storyId}/tasks`);
+    let tasks = data.map(mapTask);
+    if (query.projectId) tasks = tasks.filter((t) => t.projectId === query.projectId);
+    if (query.assigneeId) tasks = tasks.filter((t) => t.assigneeId === query.assigneeId);
+    return tasks;
+  }
+
+  // If projectId is provided but no storyId, fetch all stories for the project, then tasks for each story
+  if (query.projectId) {
+    const stories = await apiFetch<any[]>(`/api/projects/${query.projectId}/stories`);
+    const tasksData = await Promise.all(
+      stories.map((s) => apiFetch<any[]>(`/api/stories/${s.id}/tasks`)),
+    );
+    let tasks = tasksData.flat().map(mapTask);
+    if (query.assigneeId) tasks = tasks.filter((t) => t.assigneeId === query.assigneeId);
+    return tasks;
+  }
+
+  // If only assigneeId is provided (or no filters), fetch all projects, all stories, all tasks
+  // (This handles the My Work page which needs all tasks assigned to the user)
+  const projects = await apiFetch<any[]>(`/api/projects`);
+  const storiesData = await Promise.all(
+    projects.map((p) => apiFetch<any[]>(`/api/projects/${p.id}/stories`)),
   );
-  return clone(rows);
+  const stories = storiesData.flat();
+  const tasksData = await Promise.all(
+    stories.map((s) => apiFetch<any[]>(`/api/stories/${s.id}/tasks`)),
+  );
+  let tasks = tasksData.flat().map(mapTask);
+  
+  if (query.assigneeId) {
+    tasks = tasks.filter((t) => t.assigneeId === query.assigneeId);
+  }
+  return tasks;
 }
 
 /** GET /tasks/:id */
 export async function getTask(id: ID): Promise<Task> {
-  await latency(140);
-  const task = db.tasks.find((t) => t.id === id);
-  if (!task) throw new NotFoundError("Task", id);
-  return clone(task);
-}
-
-function validate(input: Pick<TaskInput, "title" | "storyId" | "estimatedHours">) {
-  if (!input.title.trim()) throw new ValidationError("Task title is required.");
-  if (!input.storyId) throw new ValidationError("A task must belong to a user story.");
-  if (input.estimatedHours < 0 || input.estimatedHours > 200)
-    throw new ValidationError("Estimated hours must be between 0 and 200.");
+  const data = await apiFetch<any>(`/api/tasks/${id}`);
+  return mapTask(data);
 }
 
 /** POST /tasks */
 export async function createTask(input: TaskInput): Promise<Task> {
-  await latency(320);
-  validate(input);
-  const story = db.stories.find((s) => s.id === input.storyId);
-  if (!story) throw new NotFoundError("User story", input.storyId);
-  const timestamp = now();
-  const task: Task = {
-    id: nextId("t"),
-    ref: nextRef(
-      "TASK",
-      db.tasks.filter((t) => t.projectId === story.projectId).map((t) => t.ref),
-    ),
-    ...input,
-    projectId: story.projectId,
-    labels: input.labels.filter((l) => l.trim().length > 0),
-    completedAt: input.status === "done" ? timestamp : null,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  };
-  db.tasks = [task, ...db.tasks];
-  recordActivity({
-    actorId: CURRENT_USER_ID,
-    action: "created",
-    entityType: "task",
-    entityId: task.id,
-    entityRef: task.ref,
-    entityTitle: task.title,
-    projectId: task.projectId,
-    storyId: task.storyId,
+  const data = await apiFetch<any>(`/api/stories/${input.storyId}/tasks`, {
+    method: "POST",
+    body: JSON.stringify(mapTaskInput(input)),
   });
-  if (task.assigneeId && task.assigneeId === CURRENT_USER_ID) {
-    pushNotification({
-      kind: "assignment",
-      title: `${task.ref} was assigned to you`,
-      body: `“${task.title}” was assigned to you.`,
-      read: false,
-      link: `/projects/${task.projectId}/board`,
-    });
-  }
-  return clone(task);
+  return mapTask(data);
 }
 
 /** PATCH /tasks/:id */
 export async function updateTask(id: ID, patch: Partial<TaskInput>): Promise<Task> {
-  await latency(240);
-  const current = db.tasks.find((t) => t.id === id);
-  if (!current) throw new NotFoundError("Task", id);
-  const merged: Task = { ...current, ...patch, updatedAt: now() };
-  if (patch.status) {
-    merged.completedAt = patch.status === "done" ? now() : null;
-  }
-  validate(merged);
-  db.tasks = db.tasks.map((t) => (t.id === id ? merged : t));
-
-  const action =
-    patch.status && patch.status !== current.status
-      ? "status_changed"
-      : patch.priority && patch.priority !== current.priority
-        ? "priority_changed"
-        : patch.assigneeId !== undefined && patch.assigneeId !== current.assigneeId
-          ? "assigned"
-          : patch.dueDate !== undefined && patch.dueDate !== current.dueDate
-            ? "due_date_changed"
-            : "updated";
-
-  recordActivity({
-    actorId: CURRENT_USER_ID,
-    action,
-    entityType: "task",
-    entityId: merged.id,
-    entityRef: merged.ref,
-    entityTitle: merged.title,
-    projectId: merged.projectId,
-    storyId: merged.storyId,
-    from:
-      action === "status_changed"
-        ? current.status
-        : action === "priority_changed"
-          ? current.priority
-          : action === "due_date_changed"
-            ? current.dueDate
-            : null,
-    to:
-      action === "status_changed"
-        ? merged.status
-        : action === "priority_changed"
-          ? merged.priority
-          : action === "due_date_changed"
-            ? merged.dueDate
-            : action === "assigned"
-              ? merged.assigneeId
-              : null,
+  const data = await apiFetch<any>(`/api/tasks/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(mapTaskInput(patch)),
   });
-
-  if (action === "assigned" && merged.assigneeId === CURRENT_USER_ID) {
-    pushNotification({
-      kind: "assignment",
-      title: `${merged.ref} was assigned to you`,
-      body: `“${merged.title}” is now assigned to you.`,
-      read: false,
-      link: `/projects/${merged.projectId}/board`,
-    });
-  }
-  return clone(merged);
+  return mapTask(data);
 }
 
 /** PATCH /tasks/:id { status } — used by the board */
@@ -158,18 +122,7 @@ export const updateTaskStatus = (id: ID, status: WorkStatus) => updateTask(id, {
 
 /** DELETE /tasks/:id */
 export async function deleteTask(id: ID): Promise<void> {
-  await latency(240);
-  const task = db.tasks.find((t) => t.id === id);
-  if (!task) throw new NotFoundError("Task", id);
-  db.tasks = db.tasks.filter((t) => t.id !== id);
-  recordActivity({
-    actorId: CURRENT_USER_ID,
-    action: "deleted",
-    entityType: "task",
-    entityId: task.id,
-    entityRef: task.ref,
-    entityTitle: task.title,
-    projectId: task.projectId,
-    storyId: task.storyId,
+  await apiFetch<void>(`/api/tasks/${id}`, {
+    method: "DELETE",
   });
 }
