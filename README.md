@@ -215,9 +215,14 @@ FlowForge implements essential security measures directly in the application cod
 - **Clean Error Handling:** Centralized exception handlers prevent stack trace leakage and return standardized, safe error JSON payloads.
 - **Environment Management:** Sensitive configurations and secrets are managed via `.env` (excluded from Git).
 
-### Authentication Scope
+### Demo Access
 
-FlowForge uses email/password authentication with JWT-based session management through HTTP-only cookies. User accounts are provisioned as part of the application's development/demo dataset. Public self-registration is intentionally outside the current assignment scope, as the evaluation focuses on authenticated project management, hierarchical work tracking, persistence, API design, and background workflow functionality.
+The application uses provisioned demo accounts for evaluation. Public self-registration is outside the current assignment scope.
+
+- **Demo email:** `priya@flowforge.dev`
+- **Demo password:** `password`
+
+After signing in, users can access the dashboard and manage projects, stories, and tasks according to their permissions. Authentication uses JWT-based session management with HTTP-only cookies through the FastAPI backend.
 
 ---
 
