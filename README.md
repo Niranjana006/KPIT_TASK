@@ -1,962 +1,318 @@
-# Flow Forge
+# FlowForge - Agile Project Management
+
+FlowForge is a complete Agile Project Management application developed for the KPIT technical evaluation. It provides teams with a robust, hierarchical structure to manage their software development lifecycle. 
+
+The application enforces a strict and organized hierarchy:
+**Project**
+&nbsp;&nbsp;└── **User Story**
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── **Task**
+
+FlowForge allows teams to seamlessly plan, track, and collaborate on their projects from high-level features down to actionable tasks, while staying informed through real-time metrics and an asynchronous notification system.
+
+---
+
+## 1. Project Overview
+
+FlowForge enables project managers and developers to organize work efficiently. Projects contain User Stories, which define the requirements and features. User Stories are then broken down into granular Tasks that can be assigned, tracked, and completed. 
+
+**Key Capabilities:**
+- Full management of Projects, User Stories, and Tasks.
+- Visualizing work via Kanban boards and hierarchy trees.
+- Tracking overdue items through automated background workflows.
+- Real-time activity feeds and dashboard metrics.
+
+---
+
+## 2. Key Features
+
+- **Authentication:** Secure login and session management using JWT and httpOnly cookies.
+- **Authorization:** Project-scoped access control ensuring users only see and interact with data for projects they are members of.
+- **Project CRUD:** Create, read, update, and delete projects.
+- **User Stories & Tasks:** Full management of nested stories and tasks, including assignments, status tracking, and due dates.
+- **Kanban Board:** Visual drag-and-drop task management.
+- **Hierarchy View:** Tree-based visualization of the Project -> Story -> Task relationship.
+- **Notifications:** Automated alerts for overdue tasks and system updates.
+- **Activity Feed:** Global and project-scoped audit logs tracking entity creation, updates, and deletions.
+- **Dashboard Metrics:** Computed metrics including project progress, status distribution, overdue task counts, and upcoming deadlines.
+- **Global Search:** Fast, fuzzy search across accessible projects, stories, and tasks.
+- **Background Workflow:** Automated scanning and processing of overdue tasks via `APScheduler`.
+- **Responsive UI:** Modern, accessible, and responsive interface powered by shadcn/ui.
+- **Error Handling:** Centralized API error formatting without leaking stack traces.
+
+---
+
+## 3. Technology Stack
+
+### Frontend
+- **React 19**
+- **TanStack Start** (Routing & SSR)
+- **TanStack Query** (Data Fetching & State Management)
+- **Tailwind CSS v4** (Styling)
+- **shadcn/ui** & **Radix UI** (Component Library)
+- **Vite** (Build Tool)
+
+### Backend
+- **FastAPI** (Web Framework)
+- **SQLAlchemy 2.0 (Async)** (ORM)
+- **SQLite** + **aiosqlite** (Database)
+- **APScheduler** (Background Job Scheduling)
+- **Alembic** (Database Migrations)
+- **Pytest** + **pytest-asyncio** (Testing)
+- **Passlib** & **python-jose** (Security & Hashing)
+
+---
+
+## 4. Architecture
+
+FlowForge follows a decoupled client-server architecture:
+
+```text
+       Browser
+          │
+          ▼
+ React / TanStack Frontend
+          │
+          ▼
+      REST API
+          │
+          ▼
+      FastAPI
+          │
+          ▼
+ SQLAlchemy (Async)
+          │
+          ▼
+       SQLite
+```
+
+**Service Layer Abstraction:** The frontend uses typed API services (e.g., `projectService.ts`, `taskService.ts`) to wrap `fetch` calls. These services parse backend responses, enforce camelCase conventions for the UI, and abstract API complexities away from React components.
+
+**Background Workflow:**
+```text
+   APScheduler
+        │
+        ▼
+Background Job Runner
+        │
+        ▼
+SQLite background_jobs (Persistence)
+        │
+        ▼
+ Overdue Task Scan
+        │
+        ▼
+   Notifications
+```
 
-Build a polished, production-quality full-stack Agile Project Management Tool for a small team of 3–10 users.
+---
 
-IMPORTANT:
+## 5. API Documentation
 
-This is a technical evaluation assignment for a software engineering internship. Do NOT create a generic template or a simple CRUD demo. Build a realistic, professional product with strong UX, clean architecture, reusable components, responsive design, and realistic interactions.
+The backend exposes a fully documented REST API. Interactive Swagger documentation is available locally at:
+`http://127.0.0.1:8000/docs`
 
-The product should feel like a lightweight combination of Jira, Linear, and modern project management tools, but with its own visual identity.
+### Implemented Endpoints:
 
-CORE CONCEPT:
+**Authentication**
+- `POST /api/auth/login` - Authenticate and set httpOnly cookie
+- `POST /api/auth/logout` - Clear authentication cookie
+- `GET /api/auth/me` - Get current authenticated user
 
-The application manages work using this mandatory hierarchy:
+**Users**
+- `GET /api/users` - List system users
+- `PATCH /api/users/me` - Update current user profile
 
-Project
+**Projects**
+- `GET /api/projects` - List accessible projects
+- `POST /api/projects` - Create a new project
+- `GET /api/projects/{id}` - Get project details
+- `PATCH /api/projects/{id}` - Update a project
+- `DELETE /api/projects/{id}` - Delete a project (Owner only)
 
-└── User Story
+**User Stories**
+- `GET /api/projects/{project_id}/stories` - List stories in a project
+- `POST /api/projects/{project_id}/stories` - Create a story
+- `GET /api/stories/{id}` - Get story details
+- `PATCH /api/stories/{id}` - Update a story
+- `DELETE /api/stories/{id}` - Delete a story
 
-        └── Task
+**Tasks**
+- `GET /api/stories/{story_id}/tasks` - List tasks in a story
+- `POST /api/stories/{story_id}/tasks` - Create a task
+- `GET /api/tasks/{id}` - Get task details
+- `PATCH /api/tasks/{id}` - Update a task
+- `DELETE /api/tasks/{id}` - Delete a task
 
-A Project contains multiple User Stories.
+**Notifications**
+- `GET /api/notifications` - List user notifications
+- `PATCH /api/notifications/{id}/read` - Mark specific notification as read
+- `PATCH /api/notifications/read-all` - Mark all as read
+- `DELETE /api/notifications/{id}` - Dismiss notification
 
-Each User Story contains one or more Tasks.
+**Activity**
+- `GET /api/activity` - Global activity feed (accessible projects)
+- `GET /api/projects/{id}/activity` - Project-specific activity feed
 
-The hierarchy must be clearly visible and easy to navigate throughout the UI.
+**Metrics**
+- `GET /api/metrics/dashboard` - Get calculated dashboard statistics
 
-==================================================
+**Search**
+- `GET /api/search?q={query}` - Global fuzzy search
 
-TECHNOLOGY / FRONTEND
+**Background Jobs**
+- `GET /api/jobs` - List recent background jobs (Admin/Monitoring)
 
-==================================================
+---
 
-Use:
+## 6. Database Schema
 
-- React
+FlowForge uses SQLite as its persistent storage. The schema enforces the `Project -> Story -> Task` hierarchy via strict foreign keys.
 
-- TypeScript
+### Core Tables:
+- **`users`**: Stores user credentials, emails, and hashed passwords.
+- **`projects`**: Stores project metadata (key, name, status, owner_id).
+- **`project_members`**: Join table mapping `users` to `projects` for authorization.
+- **`user_stories`**: Belongs to `projects`. Stores agile story requirements.
+- **`tasks`**: Belongs to `user_stories` and `projects`. Stores task status, assignee, and due date.
+- **`notifications`**: Stores user-scoped alerts (e.g., overdue warnings).
+- **`activity_events`**: Audit log storing actions (create, update, delete) on entities. Includes a JSON `details` column for flexible payload tracking.
+- **`background_jobs`**: Tracks the execution history and status (pending, success, failed) of scheduled automated tasks.
 
-- Vite
+---
 
-- Tailwind CSS
+## 7. Background Workflow
 
-- shadcn/ui or similarly accessible reusable UI components
+FlowForge implements a robust, asynchronous background workflow to process overdue tasks without blocking the main web server.
 
-- Lucide icons
+- **Scheduler:** `APScheduler` runs an automated scan every 15 minutes.
+- **Execution:** It identifies tasks that have passed their `due_date` and haven't been completed.
+- **Notification:** Generates a system notification for the task assignee.
+- **Persistence:** Job executions and outcomes are recorded in the `background_jobs` SQLite table.
+- **Idempotency:** An `idempotency_key` ensures that notifications aren't duplicated if a job is accidentally run multiple times for the same time window.
+- **Retry Strategy:** Implements an exponential backoff strategy (up to 3 attempts, delayed by `2 ** attempts` minutes) to handle transient failures gracefully.
 
-Build the frontend with a clean component architecture.
+---
 
-Use mock/local data initially so every major UI flow can be demonstrated before the backend is connected.
+## 8. Design Decisions & Tradeoffs
 
-Keep the data layer isolated behind service/API functions so the frontend can later be connected cleanly to a REST backend.
+**Why SQLite?**
+SQLite was chosen for its simplicity, zero-configuration deployment, and low infrastructure overhead. It is perfectly suited for a small-team evaluation environment and makes it trivial to run the application locally. 
+*Tradeoff:* SQLite has concurrency limitations (database-level locking during writes), which makes it less ideal for high-throughput, globally distributed applications.
 
-Do NOT tightly couple UI components to mock data.
+**Why APScheduler + SQLite instead of Celery/Redis?**
+Integrating a heavy message broker (like Redis/RabbitMQ) and worker daemon (like Celery) would unnecessarily complicate the local setup. APScheduler integrated directly into the FastAPI lifecycle, combined with SQLite persistence for jobs, achieves the goal of a reliable, trackable background workflow with zero external dependencies.
+*Tradeoff:* APScheduler runs inside the application process. If the API server is horizontally scaled to multiple instances, this architecture would require distributed locking to prevent duplicate job execution.
 
-==================================================
+---
 
-DESIGN DIRECTION
+## 9. Security Considerations
 
-==================================================
+FlowForge implements essential security measures directly in the application code:
+- **JWT Authentication:** Secure token-based auth stored safely in `httpOnly` cookies to prevent XSS attacks.
+- **Password Hashing:** `bcrypt` is used to salt and hash all user passwords.
+- **Authorization Checks:** Every API endpoint validates that the requester is an active member of the target project before permitting reads or mutations.
+- **User-Scoped Data:** Notifications and Activity Feeds are strictly scoped to the authenticated user's permissions.
+- **Clean Error Handling:** Centralized exception handlers prevent stack trace leakage and return standardized, safe error JSON payloads.
+- **Environment Management:** Sensitive configurations and secrets are managed via `.env` (excluded from Git).
 
-Create a premium, modern B2B SaaS interface.
+---
 
-Visual style:
+## 10. Testing
 
-- Clean
+The backend is thoroughly tested using `pytest` and `pytest-asyncio`. 
+The test suite covers Authentication, CRUD operations, Authorization guards, Metrics calculation, and the complete Background Worker lifecycle (including retries and idempotency).
 
-- Professional
+**Current Status:**
+- `33 / 33` backend tests passed successfully.
+- Frontend builds and lints cleanly without errors.
 
-- Minimal but information-rich
+---
 
-- Excellent spacing and typography
+## 11. Setup / Running Locally
 
-- Subtle borders
+Ensure you have Node.js (v20+) and Python (v3.10+) installed.
 
-- Soft neutral backgrounds
+### 1. Environment Variables
+Create a `.env` file in the root directory (you can copy `.env.example` if available). 
+*Note: Do not include sensitive secrets in version control.*
 
-- Clear status/priority indicators
+```env
+SECRET_KEY=your-super-secret-key-for-jwt
+DATABASE_URL=sqlite+aiosqlite:///./flowforge.db
+FRONTEND_URL=http://localhost:8080
+```
 
-- Restrained use of accent colors
+### 2. Backend Setup
+Open a terminal in the project root:
 
-- No excessive gradients
+```bash
+# Create and activate virtual environment
+python -m venv venv
+.\venv\Scripts\activate  # On Windows
+# source venv/bin/activate  # On Mac/Linux
 
-- No flashy marketing-style sections
+# Install dependencies
+pip install -r backend/requirements.txt
 
-- No unnecessary animations
+# Run migrations to create the database schema
+alembic upgrade head
 
-Think:
+# Start the FastAPI server
+uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+```
+The API is now running at: `http://127.0.0.1:8000`
+Interactive Docs: `http://127.0.0.1:8000/docs`
 
-Linear + Jira + Notion-level usability.
+### 3. Frontend Setup
+Open a separate terminal in the project root:
 
-The application must look like something a real engineering team could use.
+```bash
+# Install NPM dependencies
+npm install
 
-Fully responsive:
-
-- Desktop
-
-- Tablet
-
-- Mobile
-
-Use proper loading, empty, success, error and confirmation states.
-
-Every button and major interaction should actually work in the frontend.
-
-==================================================
-
-APPLICATION SHELL
-
-==================================================
-
-Create a persistent application layout with:
-
-LEFT SIDEBAR:
-
-- App logo/name: "FlowForge"
-
-- Dashboard
-
-- Projects
-
-- My Work
-
-- Notifications
-
-- Activity
-
-- Settings
-
-At the bottom:
-
-- User avatar
-
-- User name
-
-- Role
-
-- Workspace/team selector
-
-MAIN CONTENT:
-
-- Top navigation/header
-
-- Breadcrumbs where appropriate
-
-- Page title
-
-- Contextual actions
-
-- Search
-
-- Notifications
-
-- User menu
-
-==================================================
-
-1. DASHBOARD
-
-==================================================
-
-Create a useful project-management dashboard.
-
-Show:
-
-- Total Projects
-
-- Active Projects
-
-- Open User Stories
-
-- Open Tasks
-
-- Completed Tasks
-
-- Overdue Tasks
-
-Include:
-
-- Project progress cards
-
-- Task status distribution
-
-- Recent activity
-
-- Recently updated projects
-
-- My assigned tasks
-
-- Upcoming deadlines
-
-Use realistic sample data.
-
-The dashboard should provide actionable information rather than just decorative statistics.
-
-==================================================
-
-2. PROJECTS PAGE
-
-==================================================
-
-Create a Projects page with:
-
-- Search
-
-- Status filter
-
-- Sort
-
-- Create Project button
-
-Project cards/table should show:
-
-- Project name
-
-- Description
-
-- Status
-
-- Owner
-
-- Progress
-
-- Number of stories
-
-- Number of tasks
-
-- Due date
-
-- Last updated
-
-Allow:
-
-- Create project
-
-- Edit project
-
-- Archive project
-
-- Open project
-
-Create a polished project creation/edit dialog.
-
-Fields:
-
-- Name
-
-- Key
-
-- Description
-
-- Owner
-
-- Status
-
-- Start date
-
-- Due date
-
-Statuses:
-
-- Planning
-
-- Active
-
-- On Hold
-
-- Completed
-
-- Archived
-
-==================================================
-
-3. PROJECT DETAIL
-
-==================================================
-
-When opening a project, create a detailed project workspace.
-
-Header:
-
-- Project name
-
-- Project key
-
-- Description
-
-- Owner
-
-- Status
-
-- Progress
-
-- Due date
-
-- Edit button
-
-Navigation/tabs:
-
-- Overview
-
-- Board
-
-- Backlog
-
-- User Stories
-
-- Activity
-
-==================================================
-
-4. AGILE BOARD
-
-==================================================
-
-Create a professional Kanban-style board.
-
-Columns:
-
-- Backlog
-
-- To Do
-
-- In Progress
-
-- In Review
-
-- Done
-
-Tasks should appear as cards.
-
-Each task card should show:
-
-- Task title
-
-- Task ID
-
-- Priority
-
-- Assignee
-
-- Story association
-
-- Due date
-
-- Labels
-
-- Status
-
-Allow task status changes through intuitive interactions.
-
-If implementing drag-and-drop in the frontend, ensure there is also an accessible alternative such as a status selector.
-
-==================================================
-
-5. USER STORIES
-
-==================================================
-
-Create a User Stories view.
-
-Each story should clearly belong to a Project.
-
-Story fields:
-
-- Story ID
-
-- Title
-
-- Description
-
-- Acceptance criteria
-
-- Status
-
-- Priority
-
-- Assignee
-
-- Story points
-
-- Sprint
-
-- Labels
-
-- Created date
-
-- Updated date
-
-Example format:
-
-US-101
-
-"User authentication"
-
-As a user, I want to securely log in so that I can access my projects.
-
-Acceptance Criteria:
-
-- User can enter email
-
-- User can enter password
-
-- Invalid credentials show an error
-
-- Successful login redirects to dashboard
-
-Show the number of tasks under each story.
-
-==================================================
-
-6. TASK MANAGEMENT
-
-==================================================
-
-Create a complete task management experience.
-
-Task fields:
-
-- Task ID
-
-- Title
-
-- Description
-
-- Status
-
-- Priority
-
-- Assignee
-
-- User Story
-
-- Due date
-
-- Estimated hours
-
-- Labels
-
-- Created date
-
-- Updated date
-
-Task priorities:
-
-- Low
-
-- Medium
-
-- High
-
-- Critical
-
-Task statuses:
-
-- Backlog
-
-- To Do
-
-- In Progress
-
-- In Review
-
-- Done
-
-Support:
-
-- Create
-
-- View
-
-- Edit
-
-- Update status
-
-- Assign
-
-- Change priority
-
-- Set due date
-
-- Add labels
-
-- Delete/archive with confirmation
-
-==================================================
-
-7. HIERARCHY EXPERIENCE
-
-==================================================
-
-Make Project → User Story → Task extremely clear.
-
-Provide a hierarchical view such as:
-
-PROJECT
-
-├── US-101 Authentication
-
-│ ├── TASK-201 Login API
-
-│ ├── TASK-202 Login UI
-
-│ └── TASK-203 Validation
-
-│
-
-└── US-102 Dashboard
-
-      ├── TASK-204 Dashboard API
-
-      └── TASK-205 Dashboard UI
-
-Users should be able to expand/collapse stories and tasks.
-
-Clicking a story opens its details.
-
-Clicking a task opens its details.
-
-==================================================
-
-8. TASK / STORY DETAIL DRAWER
-
-==================================================
-
-Use a polished side drawer or modal for detailed work items.
-
-Include:
-
-- Title
-
-- Description
-
-- Status
-
-- Priority
-
-- Assignee
-
-- Parent project
-
-- Parent user story
-
-- Dates
-
-- Labels
-
-- Activity/history
-
-Include an activity timeline showing events such as:
-
-- Created
-
-- Assigned
-
-- Status changed
-
-- Priority changed
-
-- Due date changed
-
-==================================================
-
-9. MY WORK
-
-==================================================
-
-Create a page showing the current user's assigned work.
-
-Sections:
-
-- Assigned Tasks
-
-- Due Today
-
-- Upcoming
-
-- Overdue
-
-- Recently Completed
-
-Provide filters and sorting.
-
-==================================================
-
-10. SEARCH
-
-==================================================
-
-Implement global search UI.
-
-Search across:
-
-- Projects
-
-- User Stories
-
-- Tasks
-
-Show categorized results.
-
-Include keyboard-friendly interaction and a polished search dialog.
-
-==================================================
-
-11. NOTIFICATIONS
-
-==================================================
-
-Create a notification center.
-
-Example notifications:
-
-- "TASK-204 was assigned to you"
-
-- "US-101 was updated"
-
-- "TASK-205 is due tomorrow"
-
-- "Project Alpha reached 75% completion"
-
-Include unread/read states.
-
-IMPORTANT:
-
-This notification UI will later be connected to the backend's asynchronous/background workflow.
-
-==================================================
-
-12. ACTIVITY
-
-==================================================
-
-Create a project/team activity feed.
-
-Show:
-
-- Who performed the action
-
-- What changed
-
-- Related project/story/task
-
-- Timestamp
-
-Examples:
-
-"Arun moved TASK-203 from In Progress to Done."
-
-"Priya assigned TASK-205 to Karthik."
-
-"Project Alpha was marked Completed."
-
-==================================================
-
-13. SETTINGS
-
-==================================================
-
-Create a simple settings page with:
-
-- Profile
-
-- Team members
-
-- Preferences
-
-- Notification preferences
-
-Do not overbuild this section.
-
-==================================================
-
-14. UX REQUIREMENTS
-
-==================================================
-
-Every major action should provide feedback.
-
-Implement:
-
-- Toast notifications
-
-- Confirmation dialogs
-
-- Loading states
-
-- Empty states
-
-- Error states
-
-- Form validation
-
-- Disabled states
-
-- Success states
-
-Forms should have clear labels and validation messages.
-
-Avoid dead buttons.
-
-Use accessible semantic HTML and keyboard-friendly controls.
-
-==================================================
-
-15. SAMPLE DATA
-
-==================================================
-
-Create realistic sample data for:
-
-3 projects
-
-Each project should contain:
-
-- 3–5 User Stories
-
-Each User Story should contain:
-
-- 2–4 Tasks
-
-Use realistic engineering/product-management examples such as:
-
-- Authentication
-
-- Dashboard
-
-- Notifications
-
-- API integration
-
-- User management
-
-- Reporting
-
-- Search
-
-- Performance improvements
-
-Create 5–8 sample team members.
-
-Make the dashboard metrics derive from this data rather than hardcoding unrelated numbers.
-
-==================================================
-
-16. FRONTEND ARCHITECTURE
-
-==================================================
-
-Organize the code into reusable components.
-
-Suggested structure:
-
-src/
-
-components/
-
-pages/
-
-layouts/
-
-features/
-
-    projects/
-
-    stories/
-
-    tasks/
-
-    dashboard/
-
-    notifications/
-
-services/
-
-hooks/
-
-types/
-
-data/
-
-utils/
-
-Keep domain logic separated from presentation.
-
-Create TypeScript interfaces/types for:
-
-- Project
-
-- UserStory
-
-- Task
-
-- User
-
-- Notification
-
-- ActivityEvent
-
-Design the frontend so replacing mock services with REST API calls later requires minimal changes.
-
-==================================================
-
-17. BACKEND READINESS
-
-==================================================
-
-Do NOT build an unnecessary fake backend inside the frontend.
-
-Instead, create a clean service abstraction such as:
-
-projectService
-
-storyService
-
-taskService
-
-notificationService
-
-activityService
-
-These should expose methods that can later map to REST endpoints.
-
-Example:
-
-getProjects()
-
-getProject(id)
-
-createProject(data)
-
-updateProject(id, data)
-
-getStories(projectId)
-
-createStory(data)
-
-updateStory(id, data)
-
-getTasks(storyId)
-
-createTask(data)
-
-updateTask(id, data)
-
-Keep API-related logic isolated.
-
-==================================================
-
-18. PRODUCTION-MINDED UX
-
-==================================================
-
-The application should demonstrate engineering judgment.
-
-Examples:
-
-- Prevent accidental destructive actions
-
-- Validate required fields
-
-- Handle missing data gracefully
-
-- Avoid duplicated UI logic
-
-- Use reusable components
-
-- Provide useful empty states
-
-- Provide useful error messages
-
-- Maintain consistent status/priority terminology
-
-==================================================
-
-19. IMPORTANT FOR THE ASSIGNMENT
-
-==================================================
-
-This project will eventually need:
-
-- Frontend
-
-- Backend APIs
-
-- Persistent SQLite storage
-
-- Project → User Story → Task hierarchy
-
-- Create/view/update/organize functionality
-
-- At least one asynchronous/background workflow
-
-- API documentation
-
-- Database schema documentation
-
-- Architecture documentation
-
-- Design decisions and tradeoffs
-
-- Security considerations
-
-- AI usage note
-
-- Future improvements section
-
-The backend, database, async workflow, documentation and tests will be implemented later after the frontend is connected to GitHub.
-
-Design the frontend now so that it supports those requirements cleanly.
-
-==================================================
-
-FINAL QUALITY BAR
-
-==================================================
-
-Before finishing:
-
-- Ensure all routes work
-
-- Ensure all buttons have meaningful behavior
-
-- Ensure dialogs open and close correctly
-
-- Ensure forms validate
-
-- Ensure sample data is internally consistent
-
-- Ensure Project → Story → Task relationships are clearly represented
-
-- Ensure responsive behavior
-
-- Ensure no placeholder lorem ipsum
-
-- Ensure no obviously unfinished sections
-
-- Ensure the UI looks polished enough for a technical evaluation/demo
-
-Build the application now.
-
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://story-task-forge.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/9a6230c1-7621-4339-9d36-3b829318d559).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+# Start the Vite development server
 npm run dev
 ```
+The Frontend is now running at: `http://localhost:8080`
+
+---
+
+## 12. Project Structure
+
+```text
+├── backend/
+│   ├── alembic/           # Database migrations
+│   ├── routers/           # FastAPI route handlers
+│   ├── tests/             # Pytest test suite
+│   ├── worker.py          # APScheduler background tasks
+│   ├── models.py          # SQLAlchemy models
+│   ├── schemas.py         # Pydantic validation schemas
+│   └── main.py            # FastAPI application entrypoint
+├── src/                   # Frontend React Source
+│   ├── components/        # Reusable UI components (shadcn)
+│   ├── features/          # Domain-specific components
+│   ├── hooks/             # TanStack Query & React hooks
+│   ├── routes/            # TanStack Start file-based routing
+│   ├── services/          # API fetch abstraction layer
+│   └── types/             # TypeScript interfaces
+├── package.json
+└── README.md
+```
+
+---
+
+## 13. AI Usage Note
+
+AI-assisted development tools were used during implementation for code generation, debugging, refactoring, documentation, and development assistance. Generated changes were reviewed, tested, integrated, and verified as part of the rigorous development process to ensure code quality and architectural soundness.
+
+---
+
+## 14. Future Improvements
+
+While FlowForge is feature-complete for the current scope, future iterations for a larger-scale production deployment could include:
+- **PostgreSQL Migration:** Transitioning from SQLite to PostgreSQL to support high-concurrency read/write operations.
+- **Distributed Message Broker:** Moving background jobs to a robust Redis/Celery queue for true distributed processing and horizontal scaling.
+- **Real-time WebSockets:** Pushing live notifications and activity feed updates to the client via WebSockets instead of relying on frontend polling or manual refresh.
+- **Advanced RBAC:** Implementing granular Role-Based Access Control (Admin, Contributor, Viewer) within projects.
+- **CI/CD Integration:** Implementing automated GitHub Actions for testing and continuous deployment.
+- **Automated Frontend Testing:** Adding Playwright/Cypress for E2E UI testing.
