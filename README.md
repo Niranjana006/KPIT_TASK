@@ -41,7 +41,7 @@ FlowForge enables project managers and developers to organize work efficiently. 
 - **Notifications:** Automated alerts for overdue tasks and system updates.
 - **Activity Feed:** Global and project-scoped audit logs tracking entity creation, updates, and deletions.
 - **Dashboard Metrics:** Computed metrics including project progress, status distribution, overdue task counts, and upcoming deadlines.
-- **Global Search:** Fast, fuzzy search across accessible projects, stories, and tasks.
+- **Global Search:** Fast, case-insensitive search across accessible projects, stories, and tasks.
 - **Background Workflow:** Automated scanning and processing of overdue tasks via `APScheduler`.
 - **Responsive UI:** Modern, accessible, and responsive interface powered by shadcn/ui.
 - **Error Handling:** Centralized API error formatting without leaking stack traces.
@@ -146,9 +146,9 @@ The backend exposes a fully documented REST API. Interactive Swagger documentati
 
 - `GET /api/projects/{project_id}/stories` - List stories in a project
 - `POST /api/projects/{project_id}/stories` - Create a story
-- `GET /api/stories/{id}` - Get story details
-- `PATCH /api/stories/{id}` - Update a story
-- `DELETE /api/stories/{id}` - Delete a story
+- `GET /api/projects/{project_id}/stories/{story_id}` - Get story details
+- `PATCH /api/projects/{project_id}/stories/{story_id}` - Update a story
+- `DELETE /api/projects/{project_id}/stories/{story_id}` - Delete a story
 
 **Tasks**
 
@@ -176,7 +176,7 @@ The backend exposes a fully documented REST API. Interactive Swagger documentati
 
 **Search**
 
-- `GET /api/search?q={query}` - Global fuzzy search
+- `GET /api/search?q={query}` - Global case-insensitive search
 
 **Background Jobs**
 
@@ -230,7 +230,7 @@ _Tradeoff:_ APScheduler runs inside the application process. If the API server i
 
 FlowForge implements essential security measures directly in the application code:
 
-- **JWT Authentication:** Secure token-based auth stored safely in `httpOnly` cookies to prevent XSS attacks.
+- **JWT Authentication:** Secure token-based auth stored safely in `httpOnly` cookies to prevent client-side JavaScript from directly accessing the authentication token/session cookie, reducing token theft risk through XSS.
 - **Password Hashing:** `bcrypt` is used to salt and hash all user passwords.
 - **Authorization Checks:** Every API endpoint validates that the requester is an active member of the target project before permitting reads or mutations.
 - **User-Scoped Data:** Notifications and Activity Feeds are strictly scoped to the authenticated user's permissions.
@@ -288,8 +288,10 @@ python -m venv venv
 # Install dependencies
 pip install -r backend/requirements.txt
 
-# Run migrations to create the database schema
+# Run migrations to create the database schema (must be run from the backend directory)
+cd backend
 alembic upgrade head
+cd ..
 
 # Start the FastAPI server
 uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
@@ -321,7 +323,7 @@ The Frontend is now running at: `http://localhost:8080`
 │   ├── alembic/           # Database migrations
 │   ├── routers/           # FastAPI route handlers
 │   ├── tests/             # Pytest test suite
-│   ├── worker.py          # APScheduler background tasks
+│   ├── workers/           # APScheduler background tasks
 │   ├── models.py          # SQLAlchemy models
 │   ├── schemas.py         # Pydantic validation schemas
 │   └── main.py            # FastAPI application entrypoint
